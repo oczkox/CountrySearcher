@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="Country Name">
+    <ul class="suggestions">
+      <li>Filter for a country polish name</li>
+      <li>or an english name</li>
+      <li>or just a country code</li>
+      <li>example: Polska, Poland PL</li>
+    </ul>
+  </form>
+<script>
+const endpoint = 'https://gist.githubusercontent.com/lukaszfiszer/7185871/raw/b5665118984a59cd889f62018f8f96b3fc90bc94/ISO_3166-1_countries_pl.json';
+
+const countries = [];
+
+fetch(endpoint)
+  .then(blob => blob.json())
+  .then(data => countries.push(...data))
+
+function findMatches(wordToMatch, countries) {
+  return countries.filter(place => {
+    const regex = new RegExp(wordToMatch, 'gi');
+    return place.name_pl.match(regex) || place.name_en.match(regex) || place.code.match(regex)
+  });
+}
+
+function displayMatches() {
+  const matchArray = findMatches(this.value, countries);
+  const html = matchArray.map(place => {
+    const regex = new RegExp(this.value, 'gi');
+    const countryNamePL = place.name_pl.replace(regex, `<span class='hl'>${this.value}</span>`);
+    const countryNameEN = place.name_en.replace(regex, `<span class='hl'>${this.value}</span>`);
+    const countryCode = place.code.replace(regex, `<span class='hl'>${this.value}</span>`);
+    return `
+      <li>
+        <span class="name">${countryNamePL}, ${countryNameEN}</span>
+        <span class="code">${countryCode}</span>
+      </li>
+    `;
+  }).join('');
+  suggestions.innerHTML = html;
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
+
+</script>
+</body>
+</html>
